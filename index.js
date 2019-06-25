@@ -4,6 +4,7 @@ var io = require('socket.io')(server);
 var fs = require('fs');
 var fileName = './highScores.json';
 var highScore = require('./highScores.json');
+var port = process.env.PORT || 6969;
 
 
 /*console.log(highScore.levels[0].scoreList[0].name);
@@ -23,7 +24,7 @@ fs.writeFile(fileName, JSON.stringify(highScore, null, 2), function (err) {
 
 //  console.log(doesScoreFit(1,2));
 
-server.listen(6969, function(){
+server.listen(port, function(){
     console.log("severi pyörii");
 });
 
@@ -62,7 +63,7 @@ io.on('connection', function(socket){
 
         socket.emit('HSinfo', names, times );
         console.log( names);
-        
+        console.log( times);
         console.log("info sent");
     });
 });
