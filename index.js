@@ -38,9 +38,6 @@ server.listen(port, function(){
     
 });
 
-getHSfromDB(2, 100);
-//test(2);
-
 //defining socket io events
 io.on('connection', function(socket){
     console.log("pelaaja löytyi");
@@ -50,6 +47,7 @@ io.on('connection', function(socket){
     socket.on('disconnect', function(){
         console.log("pelaaja poistui");
     });
+
     //sends info to the client if the score fits
     socket.on('testi', (data) => {
         console.log(data);
