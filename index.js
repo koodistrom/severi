@@ -64,7 +64,7 @@ io.on('connection', function(socket){
     socket.on('getHS', (data) => {
         socket.emit('testing',  true);
         
-        sendArraysFromDB;
+        sendArraysFromDB(data.level);
 
     });
 });
