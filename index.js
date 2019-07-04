@@ -3,32 +3,14 @@ var mongoose = require('mongoose');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var fs = require('fs');
-var fileName = './highScores.json';
-var highScore = require('./highScores.json');
 var port = process.env.PORT || 6969;
-
+var mongoUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/jdce';
 HighScore = require('./models/highScore');
 
 
-/*console.log(highScore.levels[0].scoreList[0].name);
-
-console.log(highScore.levels[0].scoreList.push({"name": "kakka",
-"time" : 3}));
-
-fs.writeFile(fileName, JSON.stringify(highScore, null, 2), function (err) {
-    if (err) return console.log(err);
-    console.log(JSON.stringify(highScore));
-    console.log('writing to ' + fileName);
-  });
-  */
-
-//putScore(1, 8.01, "gaylordMcPenisilin");
-
-
-//  console.log(doesScoreFit(1,2));
 
 //connect to Mongoose
-mongoose.connect('mongodb://localhost:27017/jdce', {useNewUrlParser: true});
+mongoose.connect(mongoUrl, {useNewUrlParser: true});
 var db = mongoose.connection;
 
 
@@ -41,6 +23,7 @@ server.listen(port, function(){
 //defining socket io events
 io.on('connection', function(socket){
     console.log("pelaaja löytyi");
+
     socket.emit('socketID', { id: socket.id });
     
 
@@ -51,10 +34,10 @@ io.on('connection', function(socket){
     //sends info to the client if the score fits
     socket.on('testi', (data) => {
         console.log(data);
-        compareHSfromDB(data.level, data.time);
+        compareHSfromDB(data.level, data.time, socket);
     });
 
-    //if the socer fit client sends name&time data to the highscore
+    //if the score fit client sends name&time data to the highscore
     socket.on('nameTime', (data) => {
         console.log(data);
         putScore(data.time, data.level, data.name);
@@ -64,64 +47,21 @@ io.on('connection', function(socket){
     socket.on('getHS', (data) => {
         socket.emit('testing',  true);
         
-        sendArraysFromDB(data.levelNumber);
+        sendArraysFromDB(data, socket);
 
     });
 });
 
-//checks if received score fits to the high score list
-function doesScoreFit(levelNum, time) {
-    var levelScores = highScore.levels[levelNum-1].scoreList;
-    var scoreFits = false;
-    levelScores.forEach(function(item) {
-        if(time<item.time){
-            scoreFits = true;
-        }
-        if(item.time==null){
-            scoreFits = true;
-        }
-    });
-    return scoreFits;
-  }
-//adds client send name and score to the high score
-  /*function putScore(levelNum, time, name) {
-    var levelScores = highScore.levels[levelNum-1].scoreList;
-    var found = false
-    levelScores.forEach(function(item, index) {
-        
-        if((time<item.time || item.time == null) && found == false){
-            levelScores.splice(index, 0, {"name" : name , "time" : time});
-            found = true;
-        }
-
-    });
-
-    levelScores.pop();
-
-    fs.writeFile(fileName, JSON.stringify(highScore, null, 2), function (err) {
-        if (err) return console.log(err);
-        console.log(JSON.stringify(highScore));
-        console.log('writing to ' + fileName);
-      });
-    
-  }*/
-
-  function makeArrays(names, times){
-    highScore.levels[data-1].scoreList.forEach(function(item) {
-        names.push(item.name);
-        times.push(item.time);
-    });
-  }
 
 
-  //test database
+  //vertify database connecting
 
 mongoose.connection.on('connected', function(){
     console.log('yhdistetty');
 
 });
 //retrieve and compare times from DB and send info do they fit to client
-function compareHSfromDB(level, time){
+function compareHSfromDB(level, time, socket){
     HighScore.getHighScoresLevel(level,(err, highScores) => {
         if(err){
             console.log(err);
@@ -155,7 +95,7 @@ function compareHSfromDB(level, time){
 
 //make arrays from DB and emit
 
-function sendArraysFromDB(level){
+function sendArraysFromDB(level, socket){
     HighScore.getHighScoresLevel(level,(err, highScores) => {
         if(err){
             console.log(err);
